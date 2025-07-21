@@ -37,6 +37,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
 
+    [HttpPost]
     public async Task<IActionResult> GenerateInternalPassport(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -48,6 +49,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateForeignPassport(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -59,6 +61,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateTaxpayerCard(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -70,6 +73,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateDriverLicense(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -81,6 +85,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateVehicleLicense(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -92,6 +97,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateUserBirthRecord(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -103,6 +109,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateBirthCertificate(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -114,6 +121,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateReferenceInternallyDisplacedPerson(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -125,6 +133,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateStudentIdCard(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -136,6 +145,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GeneratePensionCard(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -147,6 +157,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateNameChangeActRecord(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -158,6 +169,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateMarriageActRecord(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -169,6 +181,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateDivorceActRecord(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -180,6 +193,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateVeteranCertificate(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -191,6 +205,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateEducationDocument(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -202,6 +217,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateResidencePermitPermanent(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
@@ -213,6 +229,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
     
+    [HttpPost]
     public async Task<IActionResult> GenerateResidencePermitTemporary(bool useDiiaId, CancellationToken ct)
     {
         var deepLink = await _deepLinkService.GenerateAsync("10c29a5a51d966154d6ffb723b61c0c163c29baf2956cd2e38fbb51d583489329c3201334c3896d303dc71d945da99ef1a8870ae807c1cb9d8b0f7d2ab36754a", new DeepLinkCreateRequest
