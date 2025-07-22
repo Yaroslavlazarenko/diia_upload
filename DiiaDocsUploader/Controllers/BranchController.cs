@@ -16,31 +16,31 @@ public class BranchController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> List(CancellationToken ct)
+    public async Task<IActionResult> List(CancellationToken cancellationToken)
     {
-        return Ok(await _branchService.ListAsync(ct: ct));
+        return Ok(await _branchService.ListAsync(cancellationToken: cancellationToken));
     }
 
     [HttpGet("{id}")]
-    public async Task<IActionResult> GetById(string id, CancellationToken ct)
+    public async Task<IActionResult> GetById(string id, CancellationToken cancellationToken)
     {
-        var branch = await _branchService.GetById(id, ct);
+        var branch = await _branchService.GetById(id, cancellationToken);
 
         return Ok(branch);
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(BranchCreateRequest request, CancellationToken ct)
+    public async Task<IActionResult> Create(BranchCreateRequest request, CancellationToken cancellationToken)
     {
-        var id = await _branchService.CreateAsync(request, ct);
+        var id = await _branchService.CreateAsync(request, cancellationToken);
 
         return Ok(id);
     }
 
     [HttpDelete("{id}")]
-    public async Task<IActionResult> Delete(string id, CancellationToken ct)
+    public async Task<IActionResult> Delete(string id, CancellationToken cancellationToken)
     {
-        await _branchService.DeleteAsync(id, ct);
+        await _branchService.DeleteAsync(id, cancellationToken);
         
         return NoContent();
     }

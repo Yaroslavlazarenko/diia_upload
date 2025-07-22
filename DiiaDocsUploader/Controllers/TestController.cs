@@ -18,7 +18,7 @@ public class TestController : ControllerBase
     [HttpGet]
     public async Task<IActionResult> GetBranches(CancellationToken ct)
     {
-        return Ok(await _service.ListAsync(ct: ct));
+        return Ok(await _service.ListAsync(cancellationToken: ct));
     }
 
     [HttpPost]

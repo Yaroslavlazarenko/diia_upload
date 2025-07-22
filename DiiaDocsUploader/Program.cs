@@ -1,9 +1,11 @@
+using DiiaDocsUploader.Contexts;
 using DiiaDocsUploader.DIExtensions;
 using DiiaDocsUploader.Models.FileSystem;
 using DiiaDocsUploader.Services;
 using DiiaDocsUploader.Services.Auth;
 using DiiaDocsUploader.Storage;
 using Microsoft.AspNetCore.HttpOverrides;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiiaDocsUploader;
 
@@ -32,6 +34,9 @@ public class Program
         
         builder.Services.Configure<FileSystemStorageOptions>(
             builder.Configuration.GetSection("FileSystemStorageOptions"));
+        
+        builder.Services.AddDbContext<DiiaDbContext>(options =>
+            options.UseNpgsql(builder.Configuration.GetConnectionString("Postgres")));
         
         builder.Services.AddScoped<IStorageService, FileSystemStorage>();
 

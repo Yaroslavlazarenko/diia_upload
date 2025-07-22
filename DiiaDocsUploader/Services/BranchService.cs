@@ -16,7 +16,7 @@ public class BranchService : DiiaServiceBase
     {
     }
 
-    public async Task<BranchListResponse> ListAsync(int? skip = null, int? limit = null, CancellationToken ct = default)
+    public async Task<BranchListResponse> ListAsync(int? skip = null, int? limit = null, CancellationToken cancellationToken = default)
     {
         var url = $"https://{_diiaCredentials.Host}/api/v2/acquirers/branches";
 
@@ -25,27 +25,27 @@ public class BranchService : DiiaServiceBase
             url += $"?skip={skip}&limit={limit}";
         }
 
-        var token = await _sessionTokenService.GetActiveSessionTokenAsync(ct);
+        var token = await _sessionTokenService.GetActiveSessionTokenAsync(cancellationToken);
 
         var client = _httpClientFactory.CreateClient();
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
-        var response = await client.GetAsync(url, ct);
+        var response = await client.GetAsync(url, cancellationToken);
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<BranchListResponse>(ct) ?? throw new DiiaApiException();
+            return await response.Content.ReadFromJsonAsync<BranchListResponse>(cancellationToken) ?? throw new DiiaApiException();
         }
 
         throw new DiiaApiException();
     }
 
-    public async Task<DiiaIdResponse> CreateAsync(BranchCreateRequest request, CancellationToken ct = default)
+    public async Task<DiiaIdResponse> CreateAsync(BranchCreateRequest request, CancellationToken cancellationToken = default)
     {
         var url = $"https://{_diiaCredentials.Host}/api/v2/acquirers/branch";
 
-        var token = await _sessionTokenService.GetActiveSessionTokenAsync(ct);
+        var token = await _sessionTokenService.GetActiveSessionTokenAsync(cancellationToken);
 
         var client = _httpClientFactory.CreateClient();
 
@@ -53,14 +53,14 @@ public class BranchService : DiiaServiceBase
 
         var content = JsonContent.Create(request);
 
-        var response = await client.PostAsync(url, content, ct);
+        var response = await client.PostAsync(url, content, cancellationToken);
 
         if (response.IsSuccessStatusCode)
         {
             
-            return await response.Content.ReadFromJsonAsync<DiiaIdResponse>(cancellationToken: ct) ?? throw new DiiaApiException();
+            return await response.Content.ReadFromJsonAsync<DiiaIdResponse>(cancellationToken: cancellationToken) ?? throw new DiiaApiException();
         }
-        Console.WriteLine(response.Content.ReadAsStringAsync(ct).Result);
+        Console.WriteLine(response.Content.ReadAsStringAsync(cancellationToken).Result);
 
         throw new DiiaApiException();
     }
