@@ -19,7 +19,7 @@ public class DocumentController : ControllerBase
 
     [HttpPost]
     [Produces("application/json")]
-    public async Task<IActionResult> OnlineUpload([FromForm] IFormCollection collection, CancellationToken ct)
+    public async Task<IActionResult> OnlineUpload([FromForm] IFormCollection collection, CancellationToken cancellationToken)
     {
         string? requestId = GetRequestIdFromHeader(Request.Headers);
         if (string.IsNullOrEmpty(requestId))
@@ -38,7 +38,7 @@ public class DocumentController : ControllerBase
             if (!string.IsNullOrEmpty(encodeDataContent))
             {
                 _logger.LogInformation("Отримано метадані (encodeData). Додавання до черги на завантаження.");
-                uploadTasks.Add(SaveBase64ContentAsync("metadata.json.p7s.p7e", encodeDataContent, requestId, ct));
+                uploadTasks.Add(SaveBase64ContentAsync("metadata.json.p7s.p7e", encodeDataContent, requestId, cancellationToken));
             }
             else
             {
@@ -53,7 +53,7 @@ public class DocumentController : ControllerBase
                 if (file.Length > 0)
                 {
                      _logger.LogInformation("Додавання файлу документа {FileName} до черги на обробку.", file.FileName);
-                     uploadTasks.Add(SaveBase64FormFileAsync(file, requestId, ct));
+                     uploadTasks.Add(SaveBase64FormFileAsync(file, requestId, cancellationToken));
                 }
             }
 
@@ -80,14 +80,14 @@ public class DocumentController : ControllerBase
         }
     }
     
-    private async Task SaveBase64FormFileAsync(IFormFile formFile, string requestId, CancellationToken ct)
+    private async Task SaveBase64FormFileAsync(IFormFile formFile, string requestId, CancellationToken cancellationToken)
     {
         _logger.LogInformation("Читання потоку файлу {FileName} для декодування з Base64.", formFile.FileName);
         
         using var reader = new StreamReader(formFile.OpenReadStream());
-        var base64Content = await reader.ReadToEndAsync(ct);
+        var base64Content = await reader.ReadToEndAsync(cancellationToken);
         
-        await SaveBase64ContentAsync(formFile.FileName, base64Content, requestId, ct);
+        await SaveBase64ContentAsync(formFile.FileName, base64Content, requestId, cancellationToken);
     }
     
     private async Task SaveBase64ContentAsync(string fileName, string base64Content, string requestId, CancellationToken ct)

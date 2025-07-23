@@ -16,7 +16,7 @@ public class BranchCreateRequest
     public string[] DeliveryTypes { get; } = ["api"];
     public string OfferRequestType { get; } = "dynamic";
 
-    public Scopes Scopes { get; } = new Scopes
+    public Scopes Scopes { get; init; } = new Scopes
     {
         Sharing =
         [

@@ -14,12 +14,6 @@ public class TestController : ControllerBase
     {
         _service = service;
     }
-    
-    [HttpGet]
-    public async Task<IActionResult> GetBranches(CancellationToken ct)
-    {
-        return Ok(await _service.ListAsync(cancellationToken: ct));
-    }
 
     [HttpPost]
     public async Task<IActionResult> CreateBranch(CancellationToken ct)

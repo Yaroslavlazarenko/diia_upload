@@ -1,25 +1,29 @@
 ﻿using System.Net.Http.Headers;
+using DiiaDocsUploader.Contexts;
 using DiiaDocsUploader.Credentials;
 using DiiaDocsUploader.Exceptions;
 using DiiaDocsUploader.Models.DeepLink;
 using DiiaDocsUploader.Services.Auth;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace DiiaDocsUploader.Services;
 
 public class DeepLinkService : DiiaServiceBase
 {
-    public DeepLinkService(IHttpClientFactory httpClientFactory,
+    private readonly DiiaDbContext _context;
+    public DeepLinkService(DiiaDbContext context, IHttpClientFactory httpClientFactory,
         ISessionTokenService sessionTokenService,
         IOptions<DiiaCredentials> options) : base(httpClientFactory, sessionTokenService, options)
     {
+        _context = context;
     }
 
-    public async Task<DeepLinkResponse> GenerateAsync(string branchId, DeepLinkCreateRequest request, CancellationToken ct = default)
+    public async Task<DeepLinkResponse> GenerateAsync(string branchId, DeepLinkCreateRequest request, CancellationToken cancellationToken)
     {
         var url = $"https://{_diiaCredentials.Host}/api/v2/acquirers/branch/{branchId}/offer-request/dynamic";
         
-        var token = await _sessionTokenService.GetActiveSessionTokenAsync(ct);
+        var token = await _sessionTokenService.GetActiveSessionTokenAsync(cancellationToken);
 
         var client = _httpClientFactory.CreateClient();
 
@@ -29,17 +33,46 @@ public class DeepLinkService : DiiaServiceBase
         
         var content = JsonContent.Create(internalRequest);
 
-        var response = await client.PostAsync(url, content, ct);
+        var response = await client.PostAsync(url, content, cancellationToken);
         
         if (response.IsSuccessStatusCode)
         {
-            var contentStr = await response.Content.ReadAsStringAsync(ct);
+            var contentStr = await response.Content.ReadAsStringAsync(cancellationToken);
             
-            return await response.Content.ReadFromJsonAsync<DeepLinkResponse>(cancellationToken: ct) ?? throw new DiiaApiException();
+            return await response.Content.ReadFromJsonAsync<DeepLinkResponse>(cancellationToken: cancellationToken) ?? throw new DiiaApiException();
         }
 
-        var error = await response.Content.ReadAsStringAsync(ct);
+        var error = await response.Content.ReadAsStringAsync(cancellationToken);
         
         throw new DiiaApiException();
+    }
+
+    public async Task<DeepLinkResponse> GenerateByDocumentTypeIdAsync(int documentTypeId, CancellationToken cancellationToken)
+    {
+        var offerDocumentType = await _context.OfferDocumentTypes
+            .Include(oft => oft.Offer)
+            .FirstOrDefaultAsync(oft => oft.DocumentTypeId == documentTypeId, cancellationToken);
+
+        if (offerDocumentType is null)
+        {
+            throw new DiiaApiException("Offer document type not found");
+        }
+        
+        var offer = offerDocumentType.Offer;
+
+        if (offer is null)
+        {
+            throw new DiiaApiException("Offer not found");
+        }
+        
+        var branchId = offerDocumentType.Offer.BranchId;
+
+        var newRequest = new DeepLinkCreateRequest
+        {
+            OfferId = offerDocumentType.OfferId,
+            UseDiiaId = true
+        };
+        
+        return await GenerateAsync(branchId, newRequest, cancellationToken);
     }
 }

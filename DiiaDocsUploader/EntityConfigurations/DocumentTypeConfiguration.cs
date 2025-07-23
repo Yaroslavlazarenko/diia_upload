@@ -8,6 +8,12 @@ public class DocumentTypeConfiguration : IEntityTypeConfiguration<DocumentType>
 {
     public void Configure(EntityTypeBuilder<DocumentType> builder)
     {
+        builder.HasIndex(dt => dt.NameDiia)
+            .IsUnique();
+        
+        builder.HasIndex(d => d.NameUa)
+            .IsUnique();
+        
         builder.HasData(
             new DocumentType { Id = 1, NameDiia = "internal-passport", NameUa = "Паспорт громадянина України у формі ID-картки" },
             new DocumentType { Id = 2, NameDiia = "foreign-passport", NameUa = "Біометричний закордонний паспорт або закордонний паспорт" },
