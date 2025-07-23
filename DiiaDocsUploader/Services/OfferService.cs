@@ -1,4 +1,5 @@
 ﻿using System.Net.Http.Headers;
+using System.Web;
 using DiiaDocsUploader.Contexts;
 using DiiaDocsUploader.Credentials;
 using DiiaDocsUploader.Entity;
@@ -101,14 +102,31 @@ public class OfferService : DiiaServiceBase
         }
     }
 
-    public async Task<object> ListAsync(string branchId, OfferListRequest request, 
+    public async Task<OfferListResponse> ListAsync(string branchId, OfferListRequest request, 
         CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(branchId))
+        {
+            throw new ArgumentException("Branch ID cannot be null or empty.");
+        }
+    
         var url = $"https://{_diiaCredentials.Host}/api/v1/acquirers/branch/{branchId}/offers";
         
-        if (request.Skip >= 0 && request.Limit > 0)
+        var queryParams = HttpUtility.ParseQueryString(string.Empty);
+        if (request.Skip >= 0)
         {
-            url += $"?skip={request.Skip}&limit={request.Limit}";
+            queryParams["skip"] = request.Skip.ToString();
+        }
+        if (request.Limit > 0)
+        {
+            queryParams["limit"] = request.Limit.ToString();
+        }
+
+        var queryString = queryParams.ToString();
+        
+        if (!string.IsNullOrEmpty(queryString))
+        {
+            url += "?" + queryString;
         }
 
         var token = await _sessionTokenService.GetActiveSessionTokenAsync(cancellationToken);
@@ -116,14 +134,22 @@ public class OfferService : DiiaServiceBase
         var client = _httpClientFactory.CreateClient();
 
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
-        
+    
         var response = await client.GetAsync(url, cancellationToken);
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<OfferListResponse>(cancellationToken) ?? throw new DiiaApiException();
-        }
+            var offerListResponse = await response.Content.ReadFromJsonAsync<OfferListResponse>(cancellationToken);
+            
+            if (offerListResponse is null)
+            {
+                throw new DiiaApiException($"Failed to deserialize the successful response from Diia API for offers of branch '{branchId}'.");
+            }
 
-        throw new DiiaApiException();
+            return offerListResponse;
+        }
+        
+        var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        throw new DiiaApiException($"Failed to retrieve offers for branch '{branchId}' from Diia API. Status code: {response.StatusCode}. Response: {errorContent}");
     }
 }

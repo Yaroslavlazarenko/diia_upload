@@ -21,7 +21,7 @@ public class FileSystemStorage : IStorageService
         _logger.LogInformation("File system storage initialized. Root path: {RootPath}", _rootPath);
     }
 
-    public async Task UploadAsync(string fileName, Stream contentStream, string folderName, CancellationToken cancellationToken = default)
+    public async Task<string> UploadAsync(string fileName, Stream contentStream, string folderName, CancellationToken cancellationToken)
     {
         var folderPath = Path.Combine(_rootPath, folderName);
 
@@ -41,6 +41,7 @@ public class FileSystemStorage : IStorageService
             await using var fileStream = new FileStream(filePath, FileMode.Create, FileAccess.Write);
             await contentStream.CopyToAsync(fileStream, cancellationToken);
             _logger.LogInformation("Successfully saved file: {FilePath}", filePath);
+            return filePath;
         }
         catch (Exception ex)
         {

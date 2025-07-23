@@ -25,9 +25,20 @@ public class BranchService : DiiaServiceBase
     {
         var url = $"https://{_diiaCredentials.Host}/api/v2/acquirers/branches";
         
-        if (request.Skip >= 0 && request.Limit > 0)
+        var queryParams = System.Web.HttpUtility.ParseQueryString(string.Empty);
+        if (request.Skip >= 0)
         {
-            url += $"?skip={request.Skip}&limit={request.Limit}";
+            queryParams["skip"] = request.Skip.ToString();
+        }
+        if (request.Limit > 0)
+        {
+            queryParams["limit"] = request.Limit.ToString();
+        }
+
+        var queryString = queryParams.ToString();
+        if (!string.IsNullOrEmpty(queryString))
+        {
+            url += "?" + queryString;
         }
 
         var token = await _sessionTokenService.GetActiveSessionTokenAsync(cancellationToken);
@@ -40,10 +51,18 @@ public class BranchService : DiiaServiceBase
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<BranchListResponse>(cancellationToken) ?? throw new DiiaApiException();
+            var branchListResponse = await response.Content.ReadFromJsonAsync<BranchListResponse>(cancellationToken);
+            
+            if (branchListResponse is null)
+            {
+                throw new DiiaApiException("Failed to deserialize the successful response from Diia API.");
+            }
+        
+            return branchListResponse;
         }
-
-        throw new DiiaApiException();
+        
+        var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        throw new DiiaApiException($"Failed to retrieve branches from Diia API. Status code: {response.StatusCode}. Response: {errorContent}");
     }
 
     public async Task<DiiaIdResponse> CreateAsync(BranchCreateRequest request, CancellationToken cancellationToken)
@@ -132,6 +151,11 @@ public class BranchService : DiiaServiceBase
 
     public async Task<BranchResponse> GetById(string id, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Branch ID cannot be null or empty.");
+        }
+    
         var url = $"https://{_diiaCredentials.Host}/api/v2/acquirers/branch/{id}";
 
         var token = await _sessionTokenService.GetActiveSessionTokenAsync(cancellationToken);
@@ -144,9 +168,17 @@ public class BranchService : DiiaServiceBase
 
         if (response.IsSuccessStatusCode)
         {
-            return await response.Content.ReadFromJsonAsync<BranchResponse>(cancellationToken: cancellationToken) ?? throw new DiiaApiException();
+            var branchResponse = await response.Content.ReadFromJsonAsync<BranchResponse>(cancellationToken: cancellationToken);
+            
+            if (branchResponse is null)
+            {
+                throw new DiiaApiException($"Failed to deserialize the successful response from Diia API for branch '{id}'.");
+            }
+        
+            return branchResponse;
         }
         
-        throw new DiiaApiException();
+        var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+        throw new DiiaApiException($"Failed to retrieve branch '{id}' from Diia API. Status code: {response.StatusCode}. Response: {errorContent}");
     }
 }

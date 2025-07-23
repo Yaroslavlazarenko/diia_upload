@@ -1,4 +1,6 @@
 ﻿using System.Net.Http.Headers;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using DiiaDocsUploader.Contexts;
 using DiiaDocsUploader.Credentials;
 using DiiaDocsUploader.Exceptions;
@@ -31,20 +33,22 @@ public class DeepLinkService : DiiaServiceBase
 
         var internalRequest = new InternalDiiaDeepLinkRequest(request);
         
-        var content = JsonContent.Create(internalRequest);
+        var content = JsonContent.Create(internalRequest, options: new JsonSerializerOptions
+        {
+            DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+        });
 
         var response = await client.PostAsync(url, content, cancellationToken);
         
         if (response.IsSuccessStatusCode)
         {
-            var contentStr = await response.Content.ReadAsStringAsync(cancellationToken);
-            
-            return await response.Content.ReadFromJsonAsync<DeepLinkResponse>(cancellationToken: cancellationToken) ?? throw new DiiaApiException();
+            return await response.Content.ReadFromJsonAsync<DeepLinkResponse>(cancellationToken: cancellationToken) 
+                   ?? throw new DiiaApiException("Failed to deserialize Diia response.");
         }
 
         var error = await response.Content.ReadAsStringAsync(cancellationToken);
-        
-        throw new DiiaApiException();
+    
+        throw new DiiaApiException(error); 
     }
 
     public async Task<DeepLinkResponse> GenerateByDocumentTypeIdAsync(int documentTypeId, CancellationToken cancellationToken)
@@ -70,7 +74,8 @@ public class DeepLinkService : DiiaServiceBase
         var newRequest = new DeepLinkCreateRequest
         {
             OfferId = offerDocumentType.OfferId,
-            UseDiiaId = true
+            UseDiiaId = true,
+            ReturnLink = _diiaCredentials.DefaultReturnLink
         };
         
         return await GenerateAsync(branchId, newRequest, cancellationToken);

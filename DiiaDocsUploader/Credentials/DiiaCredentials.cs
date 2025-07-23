@@ -6,6 +6,8 @@ public sealed class DiiaCredentials
 {
     public string Host { get; init; } = null!;
     public string AcquirerToken { get; init; } = null!;
+    
+    public string? DefaultReturnLink { get; init; }
     public string? AuthAcquirerToken { get; init; }
 }
 

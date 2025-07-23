@@ -5,18 +5,22 @@ namespace DiiaDocsUploader.Models.DeepLink;
 public class InternalDiiaDeepLinkRequest
 {
     [JsonPropertyName("offerId")]
-    public string OfferId { get; set; } = null!;
+    public string OfferId { get; }
 
     [JsonPropertyName("requestId")]
-    public string RequestId { get; set; } = null!;
+    public string RequestId { get; }
+    
+    [JsonPropertyName("returnLink")]
+    public string? ReturnLink { get; }
 
     [JsonPropertyName("useDiiaId")]
-    public bool UseDiiaId { get; set; } = true;
+    public bool UseDiiaId { get; }
     
-    public InternalDiiaDeepLinkRequest(DeepLinkCreateRequest externalRequest)
+    public InternalDiiaDeepLinkRequest(DeepLinkCreateRequest request)
     {
-        OfferId = externalRequest.OfferId;
-        UseDiiaId = externalRequest.UseDiiaId;
+        OfferId = request.OfferId;
+        UseDiiaId = request.UseDiiaId;
+        ReturnLink = request.ReturnLink;
         RequestId = Guid.NewGuid().ToString();
     }
 }

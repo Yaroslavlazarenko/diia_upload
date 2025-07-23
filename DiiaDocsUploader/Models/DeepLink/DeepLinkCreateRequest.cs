@@ -4,4 +4,6 @@ public class DeepLinkCreateRequest
 {
     public string OfferId { get; set; } = null!;
     public bool UseDiiaId { get; set; } = true;
+    
+    public string? ReturnLink { get; set; }
 }
