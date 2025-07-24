@@ -37,67 +37,69 @@ public class DocumentProcessingService
             return ProcessingResult.Failure("encodeData is missing.");
         }
         
-        DocumentMetadata metadataRecord;
+        var files = collection.Files;
+        var documentSignaturePairs = GroupFilesAndSignatures(files);
+        var documentFileRecords = new List<DocumentFile>();
+
+        foreach (var pair in documentSignaturePairs)
+        {
+            if (pair.Value.Document is null || pair.Value.Signature is null)
+            {
+                _logger.LogWarning("Для документа {BaseFileName} відсутній файл або підпис. Пропускається.", pair.Key);
+                continue;
+            }
+
+            try
+            {
+                var documentPath = await SaveBase64FormFileAsync(pair.Value.Document, requestId, cancellationToken);
+                var signaturePath = await SaveBase64FormFileAsync(pair.Value.Signature, requestId, cancellationToken);
+                
+                documentFileRecords.Add(new DocumentFile
+                {
+                    DocumentFilePath = documentPath,
+                    DigitalSignaturePath = signaturePath
+                });
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogError(ex, "Помилка формату Base64 для файлу {FileName}. RequestId: {RequestId}", pair.Key, requestId);
+                return ProcessingResult.Failure($"Invalid Base64 format for file '{pair.Key}'.");
+            }
+        }
+        
+        if (!documentFileRecords.Any())
+        {
+            _logger.LogWarning("Не знайдено коректних пар 'документ-підпис' для збереження. RequestId: {RequestId}", requestId);
+            return ProcessingResult.Failure("No valid document-signature pairs to save.");
+        }
+        
         try
         {
             var metadataPath = await _storageService.UploadFromBase64Async("metadata.json.p7s.p7e", encodeDataContent, requestId, cancellationToken);
             
-            metadataRecord = new DocumentMetadata
+            var metadataRecord = new DocumentMetadata
             {
                 DeepLinkId = deepLinkId,
                 MetadataFilePath = metadataPath
             };
-            _context.DocumentMetadatas.Add(metadataRecord);
-            _logger.LogInformation("Підготовлено запис для DocumentMetadatas. DeepLinkId: {DeepLinkId}", deepLinkId);
+            
+            foreach (var fileRecord in documentFileRecords)
+            {
+                metadataRecord.DocumentFiles.Add(fileRecord);
+            }
+            
+            _context.DocumentMetadatas.Add(metadataRecord); 
+            
+            await _context.SaveChangesAsync(cancellationToken); 
+            
+            _logger.LogInformation("Успішно оброблено та збережено в БД. DeepLinkId: {RequestId}", requestId);
+            return ProcessingResult.Success(deepLinkId);
         }
         catch (FormatException ex)
         {
             _logger.LogError(ex, "Помилка формату Base64 для метаданих. RequestId: {RequestId}", requestId);
             return ProcessingResult.Failure("Invalid Base64 format for metadata.");
         }
-        
-        var files = collection.Files;
-        var documentSignaturePairs = GroupFilesAndSignatures(files);
-
-        foreach (var pair in documentSignaturePairs)
-        {
-             if (pair.Value.Document is null || pair.Value.Signature is null)
-             {
-                _logger.LogWarning("Для документа {BaseFileName} відсутній файл або підпис. Пропускається.", pair.Key);
-                continue;
-             }
-             
-             try
-             {
-                var documentPath = await SaveBase64FormFileAsync(pair.Value.Document, requestId, cancellationToken);
-                var signaturePath = await SaveBase64FormFileAsync(pair.Value.Signature, requestId, cancellationToken);
-                
-                var documentFileRecord = new DocumentFile
-                {
-                    DocumentFilePath = documentPath,
-                    DigitalSignaturePath = signaturePath
-                };
-                
-                metadataRecord.DocumentFiles.Add(documentFileRecord);
-                _logger.LogInformation("Підготовлено запис для DocumentFiles, що буде пов'язаний з DeepLinkId: {DeepLinkId}", deepLinkId);
-             }
-             catch(FormatException ex)
-             {
-                _logger.LogError(ex, "Помилка формату Base64 для файлу {FileName}. RequestId: {RequestId}", pair.Key, requestId);
-                return ProcessingResult.Failure($"Invalid Base64 format for file '{pair.Key}'.");
-             }
-        }
-        
-        if (!_context.ChangeTracker.HasChanges())
-        {
-            _logger.LogWarning("Не знайдено коректних даних для збереження. RequestId: {RequestId}", requestId);
-            return ProcessingResult.Failure("No valid data to save.");
-        }
-        
-        await _context.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Успішно оброблено та збережено в БД. DeepLinkId: {RequestId}", requestId);
-
-        return ProcessingResult.Success(deepLinkId);
     }
     
     private async Task<string> SaveBase64FormFileAsync(IFormFile formFile, string requestId, CancellationToken cancellationToken)
@@ -111,20 +113,28 @@ public class DocumentProcessingService
     private Dictionary<string, FileSignaturePair> GroupFilesAndSignatures(IFormFileCollection files)
     {
         var groupedFiles = new Dictionary<string, FileSignaturePair>();
+        
         const string signatureExtension = ".p7s";
+        const string encryptedExtension = ".p7e";
 
         foreach (var file in files)
         {
             string baseName;
-            bool isSignature = file.FileName.EndsWith(signatureExtension, StringComparison.OrdinalIgnoreCase);
+            bool isEncryptedDocument = file.FileName.EndsWith(encryptedExtension, StringComparison.OrdinalIgnoreCase);
+            bool isSignedDocument = !isEncryptedDocument && file.FileName.EndsWith(signatureExtension, StringComparison.OrdinalIgnoreCase);
 
-            if (isSignature)
+            if (isEncryptedDocument)
             {
-                baseName = file.FileName.Substring(0, file.FileName.Length - signatureExtension.Length);
+                baseName = file.FileName.Substring(0, file.FileName.Length - encryptedExtension.Length);
+            }
+            else if (isSignedDocument)
+            {
+                baseName = file.FileName;
             }
             else
             {
-                baseName = file.FileName;
+                _logger.LogWarning("Пропущено невідомий тип файлу: {FileName}", file.FileName);
+                continue;
             }
 
             if (!groupedFiles.ContainsKey(baseName))
@@ -132,16 +142,16 @@ public class DocumentProcessingService
                 groupedFiles[baseName] = new FileSignaturePair();
             }
 
-            if (isSignature)
-            {
-                groupedFiles[baseName].Signature = file;
-            }
-            else
+            if (isEncryptedDocument)
             {
                 groupedFiles[baseName].Document = file;
             }
+            else if (isSignedDocument)
+            {
+                groupedFiles[baseName].Signature = file;
+            }
         }
-
+        
         return groupedFiles;
     }
     
