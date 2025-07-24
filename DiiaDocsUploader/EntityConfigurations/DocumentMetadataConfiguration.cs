@@ -12,5 +12,10 @@ public class DocumentMetadataConfiguration : IEntityTypeConfiguration<DocumentMe
 
         builder.Property(d => d.DeepLinkId)
             .ValueGeneratedNever();
+        
+        builder.HasMany(dm => dm.DocumentFiles)
+            .WithOne(df => df.DocumentMetadata)
+            .HasForeignKey(df => df.DeepLinkId)
+            .HasPrincipalKey(dm => dm.DeepLinkId);
     }
 }

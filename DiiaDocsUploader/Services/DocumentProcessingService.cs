@@ -2,6 +2,7 @@ using DiiaDocsUploader.Contexts;
 using DiiaDocsUploader.Entity;
 using DiiaDocsUploader.Models.FileSystem;
 using DiiaDocsUploader.Storage;
+using Microsoft.EntityFrameworkCore;
 
 namespace DiiaDocsUploader.Services;
 
@@ -36,10 +37,12 @@ public class DocumentProcessingService
             return ProcessingResult.Failure("encodeData is missing.");
         }
         
+        DocumentMetadata metadataRecord;
         try
         {
-            var metadataPath = await SaveBase64ContentAsync("metadata.json.p7s.p7e", encodeDataContent, requestId, cancellationToken);
-            var metadataRecord = new DocumentMetadata
+            var metadataPath = await _storageService.UploadFromBase64Async("metadata.json.p7s.p7e", encodeDataContent, requestId, cancellationToken);
+            
+            metadataRecord = new DocumentMetadata
             {
                 DeepLinkId = deepLinkId,
                 MetadataFilePath = metadataPath
@@ -71,12 +74,12 @@ public class DocumentProcessingService
                 
                 var documentFileRecord = new DocumentFile
                 {
-                    DeepLinkId = deepLinkId,
                     DocumentFilePath = documentPath,
                     DigitalSignaturePath = signaturePath
                 };
-                _context.DocumentFiles.Add(documentFileRecord);
-                _logger.LogInformation("Підготовлено запис для DocumentFiles. DeepLinkId: {DeepLinkId}", deepLinkId);
+                
+                metadataRecord.DocumentFiles.Add(documentFileRecord);
+                _logger.LogInformation("Підготовлено запис для DocumentFiles, що буде пов'язаний з DeepLinkId: {DeepLinkId}", deepLinkId);
              }
              catch(FormatException ex)
              {
@@ -101,20 +104,8 @@ public class DocumentProcessingService
     {
         using var reader = new StreamReader(formFile.OpenReadStream());
         var base64Content = await reader.ReadToEndAsync(cancellationToken);
-        return await SaveBase64ContentAsync(formFile.FileName, base64Content, requestId, cancellationToken);
-    }
-
-    private async Task<string> SaveBase64ContentAsync(string fileName, string base64Content, string requestId, CancellationToken ct)
-    {
-        if (string.IsNullOrEmpty(base64Content))
-        {
-            _logger.LogWarning("Вміст для файлу {FileName} є порожнім. Пропускається. RequestId: {RequestId}", fileName, requestId);
-            throw new ArgumentException("Base64 content is empty.");
-        }
-
-        var fileBytes = Convert.FromBase64String(base64Content);
-        await using var finalStream = new MemoryStream(fileBytes);
-        return await _storageService.UploadAsync(fileName, finalStream, requestId, ct);
+        
+        return await _storageService.UploadFromBase64Async(formFile.FileName, base64Content, requestId, cancellationToken);
     }
     
     private Dictionary<string, FileSignaturePair> GroupFilesAndSignatures(IFormFileCollection files)
@@ -152,5 +143,66 @@ public class DocumentProcessingService
         }
 
         return groupedFiles;
+    }
+    
+    public async Task DeleteDocumentsAsync(IEnumerable<string> deepLinkIds, CancellationToken cancellationToken)
+    {
+        if (deepLinkIds == null)
+        {
+            throw new ArgumentNullException(nameof(deepLinkIds), "Вхідний параметр не може бути null.");
+        }
+        
+        var idsToDeleteList = deepLinkIds.ToList();
+        
+        if (!idsToDeleteList.Any())
+        {
+            throw new ArgumentException("Список ID для видалення не може бути порожнім.", nameof(deepLinkIds));
+        }
+
+        var guidsToDelete = new List<Guid>();
+        
+        foreach (var id in idsToDeleteList)
+        {
+            if (Guid.TryParse(id, out var guid))
+            {
+                guidsToDelete.Add(guid);
+            }
+            else
+            {
+                _logger.LogWarning("Отримано невалідний формат GUID для видалення: {InvalidId}", id);
+            }
+        }
+
+        if (!guidsToDelete.Any())
+        {
+            _logger.LogWarning("Після валідації не залишилось жодного коректного ID для видалення.");
+            return;
+        }
+        
+        var recordsToDelete = await _context.DocumentMetadatas
+            .Include(m => m.DocumentFiles)
+            .Where(m => guidsToDelete.Contains(m.DeepLinkId))
+            .ToListAsync(cancellationToken);
+
+        if (!recordsToDelete.Any())
+        {
+            _logger.LogWarning("Не знайдено документів для видалення за наданими ID.");
+            return; 
+        }
+        
+        foreach (var record in recordsToDelete)
+        {
+            await _storageService.DeleteAsync(record.MetadataFilePath, cancellationToken);
+            
+            foreach (var docFile in record.DocumentFiles)
+            {
+                await _storageService.DeleteAsync(docFile.DocumentFilePath, cancellationToken);
+                await _storageService.DeleteAsync(docFile.DigitalSignaturePath, cancellationToken);
+            }
+        }
+        
+        _context.DocumentMetadatas.RemoveRange(recordsToDelete);
+        await _context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Успішно видалено {Count} записів про документи.", recordsToDelete.Count);
     }
 }

@@ -123,12 +123,15 @@ public class BranchService : DiiaServiceBase
 
     public async Task DeleteAsync(string id, CancellationToken cancellationToken)
     {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            throw new ArgumentException("Branch ID cannot be null or whitespace.", nameof(id));
+        }
+
         var url = $"https://{_diiaCredentials.Host}/api/v2/acquirers/branch/{id}";
 
         var token = await _sessionTokenService.GetActiveSessionTokenAsync(cancellationToken);
-
         var client = _httpClientFactory.CreateClient();
-
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
         var response = await client.DeleteAsync(url, cancellationToken);
@@ -136,17 +139,22 @@ public class BranchService : DiiaServiceBase
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                throw new NotFoundException($"Branch with id '{id}' not found in Diia.");
+            }
             throw new DiiaApiException($"Failed to delete branch: {response.StatusCode}. Content: {errorContent}");
         }
+        
+        var branch = await _context.Branches.FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
 
-        var branch = await _context.Branches
-            .FirstOrDefaultAsync(o => o.Id == id, cancellationToken);
-
-        if (branch is not null)
+        if (branch is null)
         {
-            _context.Branches.Remove(branch);
-            await _context.SaveChangesAsync(cancellationToken);
+            throw new NotFoundException($"Branch with id '{id}' was not found in the local database.");
         }
+
+        _context.Branches.Remove(branch);
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     public async Task<BranchResponse> GetById(string id, CancellationToken cancellationToken)

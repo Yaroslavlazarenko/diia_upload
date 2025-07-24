@@ -1,4 +1,5 @@
-﻿using DiiaDocsUploader.Services;
+﻿using DiiaDocsUploader.Models.Document;
+using DiiaDocsUploader.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiiaDocsUploader.Controllers;
@@ -8,15 +9,23 @@ namespace DiiaDocsUploader.Controllers;
 public class DocumentController : ControllerBase
 {
     private readonly DocumentProcessingService _processingService;
+    private readonly DocumentRetrievalService _retrievalService; 
     private readonly ILogger<DocumentController> _logger;
 
-    public DocumentController(DocumentProcessingService processingService, ILogger<DocumentController> logger)
+    public DocumentController(
+        DocumentProcessingService processingService, 
+        DocumentRetrievalService retrievalService, 
+        ILogger<DocumentController> logger)
     {
         _processingService = processingService;
+        _retrievalService = retrievalService;
         _logger = logger;
     }
 
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     [Produces("application/json")]
     public async Task<IActionResult> OnlineUpload([FromForm] IFormCollection collection,
         CancellationToken cancellationToken)
@@ -47,6 +56,57 @@ public class DocumentController : ControllerBase
         }
     }
 
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EncryptedDocumentsResponse>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetEncryptedDocuments(int pageNumber, int pageSize, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var documents = await _retrievalService.GetDocumentsAsync(pageNumber, pageSize, cancellationToken);
+            return Ok(documents);
+        }
+        catch (ArgumentOutOfRangeException ex)
+        {
+            _logger.LogWarning(ex, "Отримано невалідні параметри пагінації.");
+            return BadRequest(new { success = false, error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Критична помилка при отриманні списку документів.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, error = "An internal error occurred while retrieving documents." });
+        }
+    }
+
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DeleteDocuments(
+        [FromBody] DeleteDocumentsRequest request,
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Отримано запит на видалення {Count} документів.", request.DeepLinkIds.Count);
+        
+        try
+        {
+            await _processingService.DeleteDocumentsAsync(request.DeepLinkIds, cancellationToken);
+            
+            return NoContent();
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Некоректний запит на видалення документів.");
+            return BadRequest(new { success = false, error = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Критична помилка під час видалення документів.");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { success = false, error = "An internal error occurred while deleting documents." });
+        }
+    }
+    
     private string? GetRequestIdFromHeader(IHeaderDictionary headers)
     {
         const string headerName = "X-Document-Request-Trace-Id";

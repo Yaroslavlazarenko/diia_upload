@@ -16,7 +16,7 @@ public class BranchController : ControllerBase
     }
 
     [HttpGet]
-    public async Task<IActionResult> List(BranchListRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> List([FromQuery]BranchListRequest request, CancellationToken cancellationToken)
     {
         return Ok(await _branchService.ListAsync(request, cancellationToken));
     }

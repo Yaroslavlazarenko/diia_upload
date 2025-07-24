@@ -22,7 +22,7 @@ namespace DiiaDocsUploader.Migrations
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.Branch", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.Branch", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -66,7 +66,7 @@ namespace DiiaDocsUploader.Migrations
                     b.ToTable("Branches");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.BranchDocumentType", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.BranchDocumentType", b =>
                 {
                     b.Property<int>("DocumentTypeId")
                         .HasColumnType("integer");
@@ -81,7 +81,7 @@ namespace DiiaDocsUploader.Migrations
                     b.ToTable("BranchDocumentTypes");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.DocumentFile", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.DocumentFile", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -107,7 +107,7 @@ namespace DiiaDocsUploader.Migrations
                     b.ToTable("DocumentFiles");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.DocumentMetadata", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.DocumentMetadata", b =>
                 {
                     b.Property<Guid>("DeepLinkId")
                         .HasColumnType("uuid");
@@ -121,7 +121,7 @@ namespace DiiaDocsUploader.Migrations
                     b.ToTable("DocumentMetadatas");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.DocumentType", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.DocumentType", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -138,6 +138,12 @@ namespace DiiaDocsUploader.Migrations
                         .HasColumnType("text");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("NameDiia")
+                        .IsUnique();
+
+                    b.HasIndex("NameUa")
+                        .IsUnique();
 
                     b.ToTable("DocumentTypes");
 
@@ -234,7 +240,7 @@ namespace DiiaDocsUploader.Migrations
                         });
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.Offer", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.Offer", b =>
                 {
                     b.Property<string>("Id")
                         .HasColumnType("text");
@@ -254,7 +260,7 @@ namespace DiiaDocsUploader.Migrations
                     b.ToTable("Offers");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.OfferDocumentType", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.OfferDocumentType", b =>
                 {
                     b.Property<int>("DocumentTypeId")
                         .HasColumnType("integer");
@@ -269,15 +275,15 @@ namespace DiiaDocsUploader.Migrations
                     b.ToTable("OfferDocumentTypes");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.BranchDocumentType", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.BranchDocumentType", b =>
                 {
-                    b.HasOne("DiiaDocsUploader.Models.Entity.Branch", "Branch")
+                    b.HasOne("DiiaDocsUploader.Entity.Branch", "Branch")
                         .WithMany("BranchDocumentTypes")
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DiiaDocsUploader.Models.Entity.DocumentType", "DocumentType")
+                    b.HasOne("DiiaDocsUploader.Entity.DocumentType", "DocumentType")
                         .WithMany("BranchDocumentTypes")
                         .HasForeignKey("DocumentTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -288,10 +294,10 @@ namespace DiiaDocsUploader.Migrations
                     b.Navigation("DocumentType");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.DocumentFile", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.DocumentFile", b =>
                 {
-                    b.HasOne("DiiaDocsUploader.Models.Entity.DocumentMetadata", "DocumentMetadata")
-                        .WithMany()
+                    b.HasOne("DiiaDocsUploader.Entity.DocumentMetadata", "DocumentMetadata")
+                        .WithMany("DocumentFiles")
                         .HasForeignKey("DeepLinkId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -299,9 +305,9 @@ namespace DiiaDocsUploader.Migrations
                     b.Navigation("DocumentMetadata");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.Offer", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.Offer", b =>
                 {
-                    b.HasOne("DiiaDocsUploader.Models.Entity.Branch", "Branch")
+                    b.HasOne("DiiaDocsUploader.Entity.Branch", "Branch")
                         .WithMany()
                         .HasForeignKey("BranchId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -310,15 +316,15 @@ namespace DiiaDocsUploader.Migrations
                     b.Navigation("Branch");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.OfferDocumentType", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.OfferDocumentType", b =>
                 {
-                    b.HasOne("DiiaDocsUploader.Models.Entity.DocumentType", "DocumentType")
+                    b.HasOne("DiiaDocsUploader.Entity.DocumentType", "DocumentType")
                         .WithMany("OfferDocumentTypes")
                         .HasForeignKey("DocumentTypeId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("DiiaDocsUploader.Models.Entity.Offer", "Offer")
+                    b.HasOne("DiiaDocsUploader.Entity.Offer", "Offer")
                         .WithMany("OfferDocumentTypes")
                         .HasForeignKey("OfferId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -329,19 +335,24 @@ namespace DiiaDocsUploader.Migrations
                     b.Navigation("Offer");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.Branch", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.Branch", b =>
                 {
                     b.Navigation("BranchDocumentTypes");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.DocumentType", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.DocumentMetadata", b =>
+                {
+                    b.Navigation("DocumentFiles");
+                });
+
+            modelBuilder.Entity("DiiaDocsUploader.Entity.DocumentType", b =>
                 {
                     b.Navigation("BranchDocumentTypes");
 
                     b.Navigation("OfferDocumentTypes");
                 });
 
-            modelBuilder.Entity("DiiaDocsUploader.Models.Entity.Offer", b =>
+            modelBuilder.Entity("DiiaDocsUploader.Entity.Offer", b =>
                 {
                     b.Navigation("OfferDocumentTypes");
                 });

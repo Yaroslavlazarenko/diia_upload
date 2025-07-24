@@ -24,7 +24,7 @@ public class OfferController : ControllerBase
     }
 
     [HttpGet("{branchId}")]
-    public async Task<IActionResult> List(string branchId, OfferListRequest request, CancellationToken cancellationToken)
+    public async Task<IActionResult> List(string branchId, [FromQuery]OfferListRequest request, CancellationToken cancellationToken)
     {
         return Ok(await _offerService.ListAsync(branchId, request, cancellationToken));
     }

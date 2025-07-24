@@ -49,4 +49,73 @@ public class FileSystemStorage : IStorageService
             throw;
         }
     }
+    
+    public async Task<string> UploadFromBase64Async(string fileName, string base64Content, string folderName, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(base64Content))
+        {
+            _logger.LogWarning("Base64 content for file {FileName} is empty. Skipping. Folder: {FolderName}", fileName, folderName);
+            throw new ArgumentException("Base64 content cannot be empty.", nameof(base64Content));
+        }
+
+        _logger.LogInformation("Converting Base64 content to byte stream for file: {FileName}", fileName);
+        
+        var fileBytes = Convert.FromBase64String(base64Content);
+        await using var finalStream = new MemoryStream(fileBytes);
+        
+        return await UploadAsync(fileName, finalStream, folderName, cancellationToken);
+    }
+    
+    public async Task<string> ReadAsBase64Async(string filePath, CancellationToken cancellationToken)
+    {
+        var fullPath = Path.Combine(_rootPath, filePath);
+        
+        _logger.LogInformation("Attempting to read file for Base64 conversion: {FullPath}", fullPath);
+
+        try
+        {
+            if (!File.Exists(fullPath))
+            {
+                _logger.LogWarning("File not found at path: {FullPath}", fullPath);
+                throw new FileNotFoundException("The requested file was not found.", fullPath);
+            }
+            
+            var fileBytes = await File.ReadAllBytesAsync(fullPath, cancellationToken);
+            
+            var base64Content = Convert.ToBase64String(fileBytes);
+            
+            _logger.LogInformation("Successfully read and converted file to Base64: {FullPath}", fullPath);
+            
+            return base64Content;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to read or convert file at path: {FullPath}", fullPath);
+            throw;
+        }
+    }
+    
+    public Task DeleteAsync(string filePath, CancellationToken cancellationToken)
+    {
+        var fullPath = Path.Combine(_rootPath, filePath);
+        
+        try
+        {
+            if (File.Exists(fullPath))
+            {
+                File.Delete(fullPath);
+                _logger.LogInformation("Файл успішно видалено: {FullPath}", fullPath);
+            }
+            else
+            {
+                _logger.LogWarning("Спроба видалити файл, який не існує: {FullPath}", fullPath);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Помилка при видаленні файлу: {FullPath}", fullPath);
+        }
+
+        return Task.CompletedTask;
+    }
 }

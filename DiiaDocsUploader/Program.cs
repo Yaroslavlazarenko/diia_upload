@@ -31,7 +31,9 @@ public class Program
         builder.Services.AddTransient<BranchService>();
         builder.Services.AddTransient<OfferService>();
         builder.Services.AddTransient<DeepLinkService>();
-        builder.Services.AddScoped<DocumentProcessingService>(); 
+        builder.Services.AddTransient<DocumentProcessingService>(); 
+        builder.Services.AddTransient<DocumentRetrievalService>(); 
+        builder.Services.AddTransient<DocumentTypeService>(); 
         
         builder.Services.Configure<FileSystemStorageOptions>(
             builder.Configuration.GetSection("FileSystemStorageOptions"));
