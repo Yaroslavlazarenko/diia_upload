@@ -37,7 +37,7 @@ public class DeepLinkController : ControllerBase
         return Ok(new LinkResponse(deepLink.DeepLink));
     }
 
-    [HttpPost("{documentTypeId}")]
+    [HttpGet("{documentTypeId}")]
     public async Task<IActionResult> GenerateUniversal(int documentTypeId, CancellationToken cancellationToken)
     {
         var deepLink = await _deepLinkService.GenerateByDocumentTypeIdAsync(documentTypeId, cancellationToken);
