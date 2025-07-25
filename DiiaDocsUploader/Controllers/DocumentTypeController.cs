@@ -36,7 +36,7 @@ public class DocumentTypeController : ControllerBase
         }
     }
 
-    [HttpGet]
+    [HttpGet("{id:int}")]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DocumentTypeResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
