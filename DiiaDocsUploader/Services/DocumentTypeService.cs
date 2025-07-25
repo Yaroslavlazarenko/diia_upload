@@ -1,5 +1,7 @@
 using DiiaDocsUploader.Contexts;
+using DiiaDocsUploader.Entity;
 using DiiaDocsUploader.Models;
+using DiiaDocsUploader.Models.DocumentType;
 using Microsoft.EntityFrameworkCore;
 
 namespace DiiaDocsUploader.Services;
@@ -32,5 +34,24 @@ public class DocumentTypeService
             
         _logger.LogInformation("Успішно отримано {Count} типів документів.", documentTypes.Count);
         return documentTypes;
+    }
+
+    public async Task<DocumentTypeResponse> GetDocumentTypeByIdAsync(int documentTypeId, CancellationToken cancellationToken)
+    {
+        var documentType = await _context.DocumentTypes
+            .AsNoTracking()
+            .FirstOrDefaultAsync(dt => dt.Id == documentTypeId, cancellationToken);
+            
+        if (documentType is null)
+        {
+            throw new ArgumentException("DocumentType not found.");
+        }
+
+        return new DocumentTypeResponse
+        {
+            Id = documentType.Id,
+            NameDiia = documentType.NameDiia,
+            NameUa = documentType.NameUa
+        };
     }
 }

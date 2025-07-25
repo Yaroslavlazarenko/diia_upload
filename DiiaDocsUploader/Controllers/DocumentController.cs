@@ -56,7 +56,7 @@ public class DocumentController : ControllerBase
         }
     }
 
-    [HttpGet]
+    [HttpPost]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EncryptedDocumentsResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

@@ -1,4 +1,6 @@
+using DiiaDocsUploader.Entity;
 using DiiaDocsUploader.Models;
+using DiiaDocsUploader.Models.DocumentType;
 using DiiaDocsUploader.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,5 +34,16 @@ public class DocumentTypeController : ControllerBase
             _logger.LogError(ex, "Помилка при отриманні списку типів документів.");
             return StatusCode(StatusCodes.Status500InternalServerError, "An internal error occurred.");
         }
+    }
+
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(IEnumerable<DocumentTypeResponse>))]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetDocumentTypeById(int id, CancellationToken cancellationToken)
+    {
+        var documentType = await _documentTypeService.GetDocumentTypeByIdAsync(id, cancellationToken);
+        
+        return Ok(documentType);
     }
 }
