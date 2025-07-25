@@ -60,11 +60,11 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EncryptedDocumentsResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetEncryptedDocuments(int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<IActionResult> GetEncryptedDocuments([FromBody]EncryptedDocumentRequest request, CancellationToken cancellationToken)
     {
         try
         {
-            var documents = await _retrievalService.GetDocumentsAsync(pageNumber, pageSize, cancellationToken);
+            var documents = await _retrievalService.GetDocumentsAsync(request, cancellationToken);
             return Ok(documents);
         }
         catch (ArgumentOutOfRangeException ex)

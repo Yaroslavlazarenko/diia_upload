@@ -18,25 +18,25 @@ public class DocumentRetrievalService
         _logger = logger;
     }
 
-    public async Task<List<EncryptedDocumentsResponse>> GetDocumentsAsync(int pageNumber, int pageSize, CancellationToken cancellationToken)
+    public async Task<List<EncryptedDocumentsResponse>> GetDocumentsAsync(EncryptedDocumentRequest request, CancellationToken cancellationToken)
     {
-        if (pageNumber < 1)
+        if (request.PageNumber < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(pageNumber), "Номер страницы не может быть меньше 1.");
+            throw new ArgumentOutOfRangeException(nameof(request.PageNumber), "Номер страницы не может быть меньше 1.");
         }
 
-        if (pageSize < 1)
+        if (request.PageSize < 1)
         {
-            throw new ArgumentOutOfRangeException(nameof(pageSize), "Размер страницы не может быть меньше 1.");
+            throw new ArgumentOutOfRangeException(nameof(request.PageSize), "Размер страницы не может быть меньше 1.");
         }
         
-        _logger.LogInformation("Запит на отримання документів. Сторінка: {PageNumber}, Розмір сторінки: {PageSize}", pageNumber, pageSize);
+        _logger.LogInformation("Запит на отримання документів. Сторінка: {PageNumber}, Розмір сторінки: {PageSize}", request.PageNumber, request.PageSize);
 
         var metadataRecords = await _context.DocumentMetadatas
             .Include(m => m.DocumentFiles) 
             .OrderByDescending(m => m.DeepLinkId)
-            .Skip((pageNumber - 1) * pageSize)
-            .Take(pageSize)
+            .Skip((request.PageNumber - 1) * request.PageSize)
+            .Take(request.PageSize)
             .AsNoTracking()
             .ToListAsync(cancellationToken);
 
