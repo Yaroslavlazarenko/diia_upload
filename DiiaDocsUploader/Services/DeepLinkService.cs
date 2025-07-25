@@ -75,7 +75,7 @@ public class DeepLinkService : DiiaServiceBase
         {
             OfferId = offerDocumentType.OfferId,
             UseDiiaId = true,
-            ReturnLink = $"{_diiaCredentials.DefaultReturnLink}/{documentTypeId}" 
+            ReturnLink = $"{_diiaCredentials.DefaultReturnLink}/confirmed/{documentTypeId}" 
         };
         
         return await GenerateAsync(branchId, newRequest, cancellationToken);
