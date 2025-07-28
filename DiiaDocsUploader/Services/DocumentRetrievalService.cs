@@ -53,19 +53,13 @@ public class DocumentRetrievalService
                     MetadataJsonBase64 = await _storageService.ReadAsBase64Async(metadata.MetadataFilePath, cancellationToken)
                 };
 
-                foreach (var docFile in metadata.DocumentFiles)
-                {
-                    var documentContentTask = _storageService.ReadAsBase64Async(docFile.DocumentFilePath, cancellationToken);
-                    var signatureContentTask = _storageService.ReadAsBase64Async(docFile.DigitalSignaturePath, cancellationToken);
+                var documentContentTasks = metadata.DocumentFiles
+                    .Select(docFile => _storageService.ReadAsBase64Async(docFile.DocumentFilePath, cancellationToken))
+                    .ToList();
 
-                    await Task.WhenAll(documentContentTask, signatureContentTask);
-
-                    response.DocumentsFilesBase64.Add(new DocumentsFilesBase64
-                    {
-                        DocumentBase64 = await documentContentTask,
-                        SignatureBase64 = await signatureContentTask
-                    });
-                }
+                var documentContents = await Task.WhenAll(documentContentTasks);
+                
+                response.DocumentBase64.AddRange(documentContents);
                 
                 results.Add(response);
             }
