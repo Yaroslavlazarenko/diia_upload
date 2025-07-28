@@ -33,6 +33,7 @@ public class DocumentRetrievalService
         _logger.LogInformation("Запит на отримання документів. Сторінка: {PageNumber}, Розмір сторінки: {PageSize}", request.PageNumber, request.PageSize);
 
         var metadataRecords = await _context.DocumentMetadatas
+            .Where(m => !m.IsDeleted)
             .Include(m => m.DocumentFiles) 
             .OrderByDescending(m => m.DeepLinkId)
             .Skip((request.PageNumber - 1) * request.PageSize)
