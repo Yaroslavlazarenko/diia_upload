@@ -80,7 +80,8 @@ public class DocumentProcessingService
             var metadataRecord = new DocumentMetadata
             {
                 DeepLinkId = deepLinkId,
-                MetadataFilePath = metadataPath
+                MetadataFilePath = metadataPath,
+                IsDeleted = false
             };
             
             foreach (var fileRecord in documentFileRecords)
@@ -92,7 +93,7 @@ public class DocumentProcessingService
             
             await _context.SaveChangesAsync(cancellationToken); 
             
-            _logger.LogInformation("Успішно оброблено та збережено в БД. DeepLinkId: {RequestId}", requestId);
+            _logger.LogInformation("Успішно створено та збережено в БД запис для DeepLinkId: {RequestId}", requestId);
             return ProcessingResult.Success(deepLinkId);
         }
         catch (FormatException ex)
@@ -189,30 +190,22 @@ public class DocumentProcessingService
             return;
         }
         
-        var recordsToDelete = await _context.DocumentMetadatas
-            .Include(m => m.DocumentFiles)
+        var recordsToMarkAsDeleted = await _context.DocumentMetadatas
             .Where(m => guidsToDelete.Contains(m.DeepLinkId))
             .ToListAsync(cancellationToken);
 
-        if (!recordsToDelete.Any())
+        if (!recordsToMarkAsDeleted.Any())
         {
             _logger.LogWarning("Не знайдено документів для видалення за наданими ID.");
             return; 
         }
         
-        foreach (var record in recordsToDelete)
+        foreach (var record in recordsToMarkAsDeleted)
         {
-            await _storageService.DeleteAsync(record.MetadataFilePath, cancellationToken);
-            
-            foreach (var docFile in record.DocumentFiles)
-            {
-                await _storageService.DeleteAsync(docFile.DocumentFilePath, cancellationToken);
-                await _storageService.DeleteAsync(docFile.DigitalSignaturePath, cancellationToken);
-            }
+            record.IsDeleted = true;
         }
         
-        _context.DocumentMetadatas.RemoveRange(recordsToDelete);
         await _context.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Успішно видалено {Count} записів про документи.", recordsToDelete.Count);
+        _logger.LogInformation("Успішно позначено як видалені {Count} записів про документи.", recordsToMarkAsDeleted.Count);
     }
 }
