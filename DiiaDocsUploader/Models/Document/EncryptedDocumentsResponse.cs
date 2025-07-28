@@ -6,5 +6,5 @@ public class EncryptedDocumentsResponse
 {
     public Guid RequestId { get; set; }
     public string MetadataJsonBase64 { get; set; } =  null!;
-    public List<string> DocumentBase64 { get; set; } = [];
+    public List<string> DocumentFilesBase64 { get; set; } = [];
 }

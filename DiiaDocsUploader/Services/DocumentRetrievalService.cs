@@ -59,7 +59,7 @@ public class DocumentRetrievalService
 
                 var documentContents = await Task.WhenAll(documentContentTasks);
                 
-                response.DocumentBase64.AddRange(documentContents);
+                response.DocumentFilesBase64.AddRange(documentContents);
                 
                 results.Add(response);
             }
