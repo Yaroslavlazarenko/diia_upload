@@ -84,14 +84,14 @@ public class DocumentController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteDocuments(
-        [FromBody] DeleteDocumentsRequest request,
+        [FromBody] List<Guid> documentsId,
         CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Отримано запит на видалення {Count} документів.", request.DeepLinkIds.Count);
+        _logger.LogInformation("Отримано запит на видалення {Count} документів.", documentsId.Count);
         
         try
         {
-            await _processingService.DeleteDocumentsAsync(request.DeepLinkIds, cancellationToken);
+            await _processingService.DeleteDocumentsAsync(documentsId, cancellationToken);
             
             return NoContent();
         }

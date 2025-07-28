@@ -156,32 +156,18 @@ public class DocumentProcessingService
         return groupedFiles;
     }
     
-    public async Task DeleteDocumentsAsync(IEnumerable<string> deepLinkIds, CancellationToken cancellationToken)
+    public async Task DeleteDocumentsAsync(IEnumerable<Guid> deepLinkIds, CancellationToken cancellationToken)
     {
         if (deepLinkIds == null)
         {
             throw new ArgumentNullException(nameof(deepLinkIds), "Вхідний параметр не може бути null.");
         }
         
-        var idsToDeleteList = deepLinkIds.ToList();
+        var guidsToDelete = deepLinkIds.ToList();
         
-        if (!idsToDeleteList.Any())
+        if (!guidsToDelete.Any())
         {
             throw new ArgumentException("Список ID для видалення не може бути порожнім.", nameof(deepLinkIds));
-        }
-
-        var guidsToDelete = new List<Guid>();
-        
-        foreach (var id in idsToDeleteList)
-        {
-            if (Guid.TryParse(id, out var guid))
-            {
-                guidsToDelete.Add(guid);
-            }
-            else
-            {
-                _logger.LogWarning("Отримано невалідний формат GUID для видалення: {InvalidId}", id);
-            }
         }
 
         if (!guidsToDelete.Any())
