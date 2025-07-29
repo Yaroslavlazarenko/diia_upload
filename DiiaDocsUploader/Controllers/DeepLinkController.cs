@@ -1,4 +1,5 @@
-﻿using DiiaDocsUploader.Infrastructure;
+﻿using DiiaDocsUploader.Filters.Attributes;
+using DiiaDocsUploader.Infrastructure;
 using DiiaDocsUploader.Models.DeepLink;
 using DiiaDocsUploader.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -30,6 +31,7 @@ public class DeepLinkController : ControllerBase
     }
 
     [HttpPost("{branchId}")]
+    [AdminKeyAuthorize]
     public async Task<IActionResult> Generate(string branchId, DeepLinkCreateRequest request, CancellationToken cancellationToken)
     {
         var deepLink = await _deepLinkService.GenerateAsync(branchId, request, cancellationToken);

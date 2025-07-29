@@ -1,4 +1,5 @@
-﻿using DiiaDocsUploader.Models.Document;
+﻿using DiiaDocsUploader.Filters.Attributes;
+using DiiaDocsUploader.Models.Document;
 using DiiaDocsUploader.Services;
 using Microsoft.AspNetCore.Mvc;
 
@@ -57,6 +58,7 @@ public class DocumentController : ControllerBase
     }
 
     [HttpPost]
+    [DecrypterKeyAuthorize]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EncryptedDocumentsResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -80,6 +82,7 @@ public class DocumentController : ControllerBase
     }
 
     [HttpPost]
+    [DecrypterKeyAuthorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

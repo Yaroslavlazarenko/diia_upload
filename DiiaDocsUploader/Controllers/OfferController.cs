@@ -1,10 +1,12 @@
-﻿using DiiaDocsUploader.Models.Offer;
+﻿using DiiaDocsUploader.Filters.Attributes;
+using DiiaDocsUploader.Models.Offer;
 using DiiaDocsUploader.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiiaDocsUploader.Controllers;
 
 [ApiController]
+[AdminKeyAuthorize]
 [Route("api/[controller]/[action]")]
 public class OfferController : ControllerBase
 {

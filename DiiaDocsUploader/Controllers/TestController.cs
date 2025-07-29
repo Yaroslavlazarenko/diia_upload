@@ -1,10 +1,12 @@
-﻿using DiiaDocsUploader.Models.Branch;
+﻿using DiiaDocsUploader.Filters.Attributes;
+using DiiaDocsUploader.Models.Branch;
 using DiiaDocsUploader.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace DiiaDocsUploader.Controllers;
 
 [ApiController]
+[AdminKeyAuthorize]
 [Route("api/[controller]/[action]")]
 public class TestController : ControllerBase
 {

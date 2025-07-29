@@ -1,10 +1,14 @@
-﻿using DiiaDocsUploader.Models.Branch;
+﻿using DiiaDocsUploader.Credentials;
+using DiiaDocsUploader.Filters.Attributes;
+using DiiaDocsUploader.Models.Branch;
 using DiiaDocsUploader.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace DiiaDocsUploader.Controllers;
 
 [ApiController]
+[AdminKeyAuthorize]
 [Route("api/[controller]/[action]")]
 public class BranchController : ControllerBase
 {
