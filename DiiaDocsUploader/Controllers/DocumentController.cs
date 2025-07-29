@@ -58,7 +58,6 @@ public class DocumentController : ControllerBase
     }
 
     [HttpPost]
-    [DecrypterKeyAuthorize]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(List<EncryptedDocumentsResponse>))]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -82,7 +81,6 @@ public class DocumentController : ControllerBase
     }
 
     [HttpPost]
-    [DecrypterKeyAuthorize]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
